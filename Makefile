@@ -60,9 +60,15 @@ help: ##@other Show this help.
 #----------------------
 
 bootstrap: ##@util Something
+	@echo "Bootstrapping admin"
 	@docker-compose exec proxysql mysql -u admin -padmin -h 127.0.0.1 -P 6032 --prompt='ProxySQLAdmin> ' -e "UPDATE global_variables SET variable_value='admin:${PROXY_SQL_ADMIN_PASSWORD}' WHERE variable_name='admin-admin_credentials'; LOAD ADMIN VARIABLES TO RUNTIME; SAVE ADMIN VARIABLES TO DISK;" || printf "Already initialized admin\n"
+	@echo "Bootstrapping servers"
 	@docker-compose exec proxysql mysql -u admin -p${PROXY_SQL_ADMIN_PASSWORD} -h 127.0.0.1 -P 6032 --prompt='ProxySQLAdmin> ' -e "DELETE FROM mysql_servers; INSERT INTO mysql_servers (hostgroup_id,hostname,port,max_replication_lag) VALUES (0,'mariadb',3306,0); LOAD MYSQL SERVERS TO RUNTIME; SAVE MYSQL SERVERS TO DISK;"
-	@docker-compose exec proxysql mysql -u admin -p${PROXY_SQL_ADMIN_PASSWORD} -h 127.0.0.1 -P 6032 --prompt='ProxySQLAdmin> ' -e "DELETE FROM mysql_servers; INSERT INTO mysql_servers (hostgroup_id,hostname,port,max_replication_lag) VALUES (0,'mariadb',3306,0); LOAD MYSQL SERVERS TO RUNTIME; SAVE MYSQL SERVERS TO DISK;"
+	@echo "Initializing Query Logging"
+	@docker-compose exec proxysql mysql -u admin -p${PROXY_SQL_ADMIN_PASSWORD} -h 127.0.0.1 -P 6032 --prompt='ProxySQLAdmin> ' -e "SET mysql-eventslog_filename='/var/lib/proxysql/queries.log'; SET mysql-eventslog_format=2; LOAD MYSQL VARIABLES TO RUNTIME; SAVE MYSQL VARIABLES TO DISK;"
+	@docker-compose exec proxysql mysql -u admin -p${PROXY_SQL_ADMIN_PASSWORD} -h 127.0.0.1 -P 6032 --prompt='ProxySQLAdmin> ' -e "DELETE FROM mysql_query_rules; INSERT INTO mysql_query_rules (rule_id, active, match_digest, log, apply) VALUES (1, 1, 'INSERT.*', 1, 0), (2, 1, 'REPLACE.*', 1, 0), (3, 1, 'DELETE.*FROM', 1, 0), (5, 1, 'UPDATE.*', 1, 0); LOAD MYSQL QUERY RULES TO RUNTIME;SAVE MYSQL QUERY RULES TO DISK;"
+	@echo "Initializing Audit Logging"
+	@docker-compose exec proxysql mysql -u admin -p${PROXY_SQL_ADMIN_PASSWORD} -h 127.0.0.1 -P 6032 --prompt='ProxySQLAdmin> ' -e "UPDATE global_variables SET variable_value='/var/lib/proxysql/audit-log.log' WHERE variable_name='mysql-auditlog_filename';UPDATE global_variables SET variable_value='104857600' WHERE variable_name='mysql-auditlog_filesize';LOAD MYSQL VARIABLES TO RUNTIME;SAVE MYSQL VARIABLES TO DISK;"
 
 create-user: ##@util Create user (user=x password=x)
 	@docker-compose exec proxysql mysql -u admin -p${PROXY_SQL_ADMIN_PASSWORD} -h 127.0.0.1 -P 6032 --prompt='ProxySQLAdmin> ' -e "REPLACE INTO mysql_users(username, password, default_hostgroup, default_schema) VALUES ('$(user)', '$(password)', 0, '${MARIADB_DATABASE}');LOAD MYSQL USERS TO RUNTIME;SAVE MYSQL USERS TO DISK; "

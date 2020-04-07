@@ -1,0 +1,47 @@
+
+version: '2.4'
+
+networks:
+  backend:
+    driver: bridge
+
+services:
+
+  #############################################
+  # mariadb
+  #############################################
+
+  mariadb:
+    restart: unless-stopped
+    build: ./containers/mariadb
+    hostname: mariadb
+    ports:
+      - ${IP_ADDRESS}:3306:3306
+    volumes:
+      - ./data/mariadb:/var/lib/mysql:delegated
+    environment:
+      - MYSQL_DATABASE=${MARIADB_DATABASE}
+      - MYSQL_USER=${MARIADB_USER}
+      - MYSQL_PASSWORD=${MARIADB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+      - MYSQL_ALLOW_EMPTY_PASSWORD=NO
+      - TZ=${TZ:-US/Central}
+    networks:
+      - backend
+
+  #############################################
+  # proxy sql
+  #############################################
+
+  proxysql:
+    restart: unless-stopped
+    build: ./containers/proxysql
+    hostname: proxysql
+    volumes:
+      - ./data/proxysql/:/var/lib/proxysql/
+    ports:
+      - ${IP_ADDRESS}:16032:6032
+      - ${IP_ADDRESS}:16033:6033
+    networks:
+      - backend
+

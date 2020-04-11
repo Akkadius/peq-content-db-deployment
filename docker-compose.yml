@@ -45,3 +45,17 @@ services:
     networks:
       - backend
 
+
+  #############################################
+  # sysbench
+  #############################################
+
+  sysbench:
+    restart: unless-stopped
+    image: severalnines/sysbench
+    hostname: sysbench
+    networks:
+      - backend
+
+
+

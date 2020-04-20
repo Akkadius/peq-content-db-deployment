@@ -50,12 +50,12 @@ services:
   # sysbench
   #############################################
 
-  sysbench:
-    restart: unless-stopped
-    image: severalnines/sysbench
-    hostname: sysbench
-    networks:
-      - backend
+  # sysbench:
+  #   restart: unless-stopped
+  #   image: severalnines/sysbench
+  #   hostname: sysbench
+  #   networks:
+  #     - backend
 
 
 

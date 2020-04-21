@@ -82,3 +82,21 @@ services:
       - backend
     command: bash -c 'npm install; npm run dev'
 
+  #############################################
+  # backup
+  #############################################
+
+  backup-cron:
+    restart: always
+    image: akkadius/backup-cron:latest
+    build:
+      context: ./containers/backup-cron
+    hostname: backup-cron
+    tty: true
+    volumes:
+      - ./:/home/backup-cron/
+    environment:
+      TZ: America/Chicago
+      DROPBOX_OAUTH_ACCESS_TOKEN: ${DROPBOX_OAUTH_ACCESS_TOKEN}
+    networks:
+      - backend

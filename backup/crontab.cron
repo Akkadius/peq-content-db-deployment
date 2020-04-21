@@ -1,0 +1,11 @@
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+MAILTO=""
+
+# docker stdout pipe example: > /proc/1/fd/1 2>/proc/1/fd/2
+
+# cron goes here
+
+0 1 * * * ./backup/backup.sh > /proc/1/fd/1 2>/proc/1/fd/2
+
+# This extra line makes it a valid cron - Don't remove

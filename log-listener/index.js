@@ -22,6 +22,9 @@ function clearWatches() {
   filesToWatch   = [];
 }
 
+/**
+ * Set up new watches
+ */
 function setNewWatches() {
   fs.readdirSync(logWatchPath).forEach(file => {
     if (file.includes(".log")) {
@@ -74,44 +77,6 @@ function processLoop() {
 processLoop();
 
 console.log("Starting main loop");
-
-// process.exit(1);
-
-/**
- * Tail
- */
-// tail.on('line', function (data) {
-//     if (data.includes("Invalid login attempt")) {
-//         return false;
-//     }
-//
-//     const projectedString = messageBuffer + data;
-//     if (projectedString.length > 1950) {
-//         sendMessage(messageBuffer);
-//         messageBuffer = '';
-//     }
-//     messageBuffer += data + '\n';
-// });
-//
-// tail.on('error', function (data) {
-//     console.log('error:', data);
-// });
-
-// tail.watch();
-
-/**
- * Send loop
- */
-// setInterval(function () {
-//     if (messageBuffer.trim() === '') {
-//         return false;
-//     }
-//
-//     sendMessage(messageBuffer);
-//     messageBuffer = '';
-//
-// }, 5000);
-
 
 function sendQueryLogRelay(line) {
   let message = '';

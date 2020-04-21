@@ -39,6 +39,8 @@ services:
     hostname: proxysql
     volumes:
       - ./data/proxysql/:/var/lib/proxysql/
+    environment:
+      TZ: America/Chicago
     ports:
       - ${IP_ADDRESS}:16032:6032
       - ${IP_ADDRESS}:16033:6033
@@ -57,5 +59,26 @@ services:
   #   networks:
   #     - backend
 
+  #############################################
+  # discord-relay
+  #############################################
 
+  log-discord-relay:
+    restart: always
+    image: akkadius/node-13:latest
+    build:
+      context: ./containers/node
+    hostname: log-discord-relay
+    tty: true
+    volumes:
+      - ./data/proxysql/:/opt/logs/proxysql/
+      - ./log-listener/:/home/node
+    environment:
+      TZ: America/Chicago
+      NODE_OPTIONS: --no-deprecation
+      LOG_WATCH_PATH: /opt/logs/proxysql/
+      DISCORD_WEBHOOK: ${DISCORD_WEBHOOK}
+    networks:
+      - backend
+    command: bash -c 'npm install; npm run dev'
 

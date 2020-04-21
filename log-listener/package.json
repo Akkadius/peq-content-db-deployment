@@ -1,0 +1,17 @@
+{
+  "name": "proxysql-discord-log-relay",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "debug": "^4.1.1",
+    "util": "^0.12.2"
+  }
+}

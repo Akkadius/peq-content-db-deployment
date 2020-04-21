@@ -36,7 +36,7 @@ IFS='
 #############################################
 # prune snapshots
 #############################################
-BACKUP_RETENTION=365
+BACKUP_RETENTION=5
 BACKUP_PATH=database-snapshots
 echo "# Truncating ${BACKUP_PATH} days back ${BACKUP_RETENTION}"
 OUTPUT=`dropbox_uploader.sh list ${BACKUP_PATH} | grep -v "Listing" | cut -d " " -f 4- | sort -r | tail -n +${BACKUP_RETENTION} | awk '{$1=$1};1'`
@@ -45,7 +45,7 @@ for x in $OUTPUT; do dropbox_uploader.sh delete ${BACKUP_PATH}/$x; done
 #############################################
 # prune deployments
 #############################################
-BACKUP_RETENTION=45
+BACKUP_RETENTION=5
 BACKUP_PATH=deployment-backups
 echo "# Truncating ${BACKUP_PATH} days back ${BACKUP_RETENTION}"
 OUTPUT=`dropbox_uploader.sh list ${BACKUP_PATH} | grep -v "Listing" | cut -d " " -f 4- | sort -r | tail -n +${BACKUP_RETENTION} | awk '{$1=$1};1'`

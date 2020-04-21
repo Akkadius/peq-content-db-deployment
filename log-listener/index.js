@@ -46,7 +46,7 @@ function setNewWatches() {
       const line = JSON.parse(data);
       if (line.query) {
         sendQueryLogRelay(line)
-      } 
+      }
       // else if (line.event && line.event === "MySQL_Client_Connect_OK") {
       //   sendAuditLogRelay(line)
       // }

@@ -78,6 +78,10 @@ create-admin-user: ##@util Create user (user=x password=x)
 	@docker-compose exec proxysql mysql -u admin -p${PROXY_SQL_ADMIN_PASSWORD} -h 127.0.0.1 -P 6032 --prompt='ProxySQLAdmin> ' -e "REPLACE INTO mysql_users(username, password, default_hostgroup, default_schema) VALUES ('$(user)', '$(password)', 0, '${MARIADB_DATABASE}');LOAD MYSQL USERS TO RUNTIME;SAVE MYSQL USERS TO DISK; "
 	@docker-compose exec mariadb mysql -u root -p${MARIADB_ROOT_PASSWORD} -h 127.0.0.1 -e "DROP user IF EXISTS '$(user)'@'172.%'; CREATE USER '$(user)'@'172.%' IDENTIFIED BY '$(password)'; GRANT ALL PRIVILEGES ON ${MARIADB_DATABASE}.* TO '$(user)'@'172.%';"
 
+create-admin-user-no-proxy: ##@util Create user (user=x password=x)
+	@docker-compose exec proxysql mysql -u admin -p${PROXY_SQL_ADMIN_PASSWORD} -h 127.0.0.1 -P 6032 --prompt='ProxySQLAdmin> ' -e "REPLACE INTO mysql_users(username, password, default_hostgroup, default_schema) VALUES ('$(user)', '$(password)', 0, '${MARIADB_DATABASE}');LOAD MYSQL USERS TO RUNTIME;SAVE MYSQL USERS TO DISK; "
+	@docker-compose exec mariadb mysql -u root -p${MARIADB_ROOT_PASSWORD} -h 127.0.0.1 -e "DROP user IF EXISTS '$(user)'@'%'; CREATE USER '$(user)'@'%' IDENTIFIED BY '$(password)'; GRANT ALL PRIVILEGES ON ${MARIADB_DATABASE}.* TO '$(user)'@'%';"
+
 create-ro-user: ##@util Create read-only user
 	@docker-compose exec proxysql mysql -u admin -p${PROXY_SQL_ADMIN_PASSWORD} -h 127.0.0.1 -P 6032 --prompt='ProxySQLAdmin> ' -e "REPLACE INTO mysql_users(username, password, default_hostgroup, default_schema, max_connections) VALUES ('ro', 'ro', 0, '${MARIADB_DATABASE}', 40);LOAD MYSQL USERS TO RUNTIME;SAVE MYSQL USERS TO DISK; "
 	@docker-compose exec mariadb mysql -u root -p${MARIADB_ROOT_PASSWORD} -h 127.0.0.1 -e "DROP user IF EXISTS 'ro'@'172.%'; CREATE USER 'ro'@'172.%' IDENTIFIED BY 'ro'; GRANT SELECT ON ${MARIADB_DATABASE}.* TO 'ro'@'172.%'; FLUSH PRIVILEGES"

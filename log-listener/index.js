@@ -50,9 +50,9 @@ function setNewWatches() {
       if (line.query) {
         sendQueryLogRelay(line)
       }
-      // else if (line.event && line.event === "MySQL_Client_Connect_OK") {
-      //   sendAuditLogRelay(line)
-      // }
+      else if (line.event && line.event === "MySQL_Client_Connect_OK" && !line.username.includes("server")) {
+         sendAuditLogRelay(line)
+      }
     });
 
     tail.on('error', function (data) {

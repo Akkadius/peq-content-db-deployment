@@ -50,7 +50,7 @@ function setNewWatches() {
       if (line.query) {
         sendQueryLogRelay(line)
       }
-      else if (line.event && line.event === "MySQL_Client_Connect_OK" && !line.username.includes("server")) {
+      else if (line.event && line.event === "MySQL_Client_Connect_OK" && !line.username.includes("server") && !line.username.includes("peq")) {
          sendAuditLogRelay(line)
       }
     });

@@ -48,10 +48,17 @@ function setNewWatches() {
     tail.on('line', function (data) {
       const line = JSON.parse(data);
       if (line.query) {
+
+        if (line.query.includes("UPDATE object SET")) {
+          return;
+        }
+
         sendQueryLogRelay(line)
-      }
-      else if (line.event && line.event === "MySQL_Client_Connect_OK" && !line.username.includes("server") && !line.username.includes("peq")) {
-         sendAuditLogRelay(line)
+      } else if (line.event &&
+        line.event === "MySQL_Client_Connect_OK" &&
+        !line.username.includes("server") &&
+        !line.username.includes("peq")) {
+        sendAuditLogRelay(line)
       }
     });
 

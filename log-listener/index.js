@@ -37,7 +37,7 @@ function setNewWatches() {
     let stats       = fs.statSync(watchFile);
     let seconds     = (new Date().getTime() - stats.mtime) / 1000;
 
-    if (seconds > 86400) {
+    if (seconds > 86400 * 3) {
       // console.log("File hasn't been modified in the past day, skipping [%s]", watchFile)
       return;
     }
@@ -68,6 +68,7 @@ function setNewWatches() {
 setInterval(function () {
   processLoop();
 }, 3600 * 1000);
+
 
 function processLoop() {
   clearWatches();

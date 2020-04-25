@@ -69,6 +69,10 @@ function setNewWatches() {
       } else if (line.event &&
         line.event === "MySQL_Client_Connect_OK") {
 
+        if (line.client_addr.includes("192.99.199")) {
+          return;
+        }
+
         if (line.username.includes("peq")) {
           return;
         }

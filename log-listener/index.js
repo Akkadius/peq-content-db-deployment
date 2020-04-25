@@ -53,11 +53,34 @@ function setNewWatches() {
           return;
         }
 
+        if (line.username.includes("peq")) {
+          return;
+        }
+
+        if (line.username.includes("server")) {
+          return;
+        }
+
+        if (line.username.includes("peq_editor")) {
+          return;
+        }
+
         sendQueryLogRelay(line)
       } else if (line.event &&
-        line.event === "MySQL_Client_Connect_OK" &&
-        !line.username.includes("server") &&
-        !line.username.includes("peq")) {
+        line.event === "MySQL_Client_Connect_OK") {
+
+        if (line.username.includes("peq")) {
+          return;
+        }
+
+        if (line.username.includes("server")) {
+          return;
+        }
+
+        if (line.username.includes("peq_editor")) {
+          return;
+        }
+
         sendAuditLogRelay(line)
       }
     });

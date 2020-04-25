@@ -73,6 +73,10 @@ function setNewWatches() {
           return;
         }
 
+        if (line.client_addr.includes("68.112.138.157")) {
+          return;
+        }
+
         if (line.username.includes("peq")) {
           return;
         }

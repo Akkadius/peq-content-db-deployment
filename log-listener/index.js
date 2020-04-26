@@ -77,6 +77,10 @@ function setNewWatches() {
           return;
         }
 
+        if (line.username === "ro") {
+          return;
+        }
+
         if (line.username.includes("peq")) {
           return;
         }

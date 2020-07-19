@@ -78,6 +78,9 @@ services:
       NODE_OPTIONS: --no-deprecation
       LOG_WATCH_PATH: /opt/logs/proxysql/
       DISCORD_WEBHOOK: ${DISCORD_WEBHOOK}
+    ports:
+      - ${IP_ADDRESS}:3000:3000
+      - ${IP_ADDRESS}:3001:3001
     networks:
       - backend
     command: bash -c 'npm install; npm run dev'

@@ -49,18 +49,6 @@ function setNewWatches() {
       const line = JSON.parse(data);
       if (line.query) {
 
-        if (line.query.includes("UPDATE object SET")) {
-          return;
-        }
-
-        if (line.username.includes("peq")) {
-          return;
-        }
-
-        if (line.username.includes("server")) {
-          return;
-        }
-
         if (line.username.includes("peq_editor")) {
           return;
         }

@@ -53,6 +53,10 @@ function setNewWatches() {
           return;
         }
 
+        if (line.username.includes("monocle")) {
+          return;
+        }
+
         sendQueryLogRelay(line)
       } else if (line.event &&
         line.event === "MySQL_Client_Connect_OK") {

@@ -1,4 +1,4 @@
-FROM mariadb:latest
+FROM mariadb:10.1.48-bionic
 
 #RUN apt-get update && apt-get install -y wget gnupg2 lsb-release && \
 #	wget https://repo.percona.com/apt/percona-release_latest.generic_all.deb && \

@@ -3,3 +3,5 @@ data
 .env
 *.sql
 .dropbox_uploader
+.bash_history
+.dropbox_uploader.old

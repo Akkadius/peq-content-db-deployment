@@ -1,4 +1,4 @@
-FROM node:13.13.0-stretch
+FROM node:20-bookworm-slim
 
 RUN apt-get update && apt-get install -y \
 	bash \

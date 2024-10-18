@@ -10,7 +10,7 @@ let watchInstances = [];
 console.log("LOG_WATCH_PATH [%s]", logWatchPath);
 
 /**
- * Clear watches
+ * Clear existing watches
  */
 function clearWatches() {
   console.log("Clearing watches [%s]", watchInstances.length);
@@ -19,12 +19,12 @@ function clearWatches() {
 }
 
 /**
- * Get the latest modified audit-log file
+ * Get the latest modified file based on a filename pattern
  */
-function getLatestAuditLog() {
+function getLatestFile(pattern) {
   const files = fs
     .readdirSync(logWatchPath)
-    .filter((file) => file.includes('audit-log') && file.endsWith('.log'))
+    .filter((file) => file.match(pattern)) // Filter based on the pattern
     .map((file) => {
       const filePath = path.join(logWatchPath, file);
       const stats = fs.statSync(filePath);
@@ -34,21 +34,20 @@ function getLatestAuditLog() {
   if (files.length === 0) return null;
 
   files.sort((a, b) => b.mtime - a.mtime); // Sort by most recent
-  return files[0].file; // Return the most recent audit-log file
+  return files[0].file; // Return the most recent file
 }
 
 /**
- * Set up new watches for required files
+ * Set up new watches for the latest audit and query logs
  */
 function setNewWatches() {
-  const latestAuditLog = getLatestAuditLog();
-  const specificQueryLog = 'queries.log.00000086';
+  const latestAuditLog = getLatestFile(/^audit-log.*\.log$/);
+  const latestQueryLog = getLatestFile(/^queries\.log\.\d+$/);
 
-  const filesToWatch = [latestAuditLog, specificQueryLog].filter(Boolean); // Remove null if any
+  const filesToWatch = [latestAuditLog, latestQueryLog].filter(Boolean); // Remove null if any
 
   filesToWatch.forEach((file) => {
     const watchFile = path.join(logWatchPath, file);
-
     console.log("Setting watch [%s]", watchFile);
 
     let tail = new alwaysTail(watchFile, '\n');
@@ -59,9 +58,7 @@ function setNewWatches() {
           if (
             line.username.includes('peq_editor') ||
             line.username.includes('monocle')
-          ) {
-            return;
-          }
+          ) return;
           sendQueryLogRelay(line);
         } else if (
           line.event === 'MySQL_Client_Connect_OK' &&
@@ -82,7 +79,7 @@ function setNewWatches() {
 }
 
 /**
- * Process loop to reset watches periodically
+ * Periodically reset watches
  */
 setInterval(() => processLoop(), 3600 * 1000);
 

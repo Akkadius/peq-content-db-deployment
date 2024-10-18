@@ -1,10 +1,10 @@
-const axios        = require('axios');
-const alwaysTail   = require('./lib/always-tail');
-const fs           = require('fs')
-const util         = require('util')
-const path         = require('path')
+const axios = require('axios');
+const alwaysTail = require('./lib/always-tail');
+const fs = require('fs');
+const util = require('util');
+const path = require('path');
+
 const logWatchPath = process.env.LOG_WATCH_PATH;
-let filesToWatch   = [];
 let watchInstances = [];
 
 console.log("LOG_WATCH_PATH [%s]", logWatchPath);
@@ -14,95 +14,77 @@ console.log("LOG_WATCH_PATH [%s]", logWatchPath);
  */
 function clearWatches() {
   console.log("Clearing watches [%s]", watchInstances.length);
-  watchInstances.forEach(instance => {
-    instance.unwatch();
-  });
-
+  watchInstances.forEach((instance) => instance.unwatch());
   watchInstances = [];
-  filesToWatch   = [];
 }
 
 /**
- * Set up new watches
+ * Get the latest modified audit-log file
+ */
+function getLatestAuditLog() {
+  const files = fs
+    .readdirSync(logWatchPath)
+    .filter((file) => file.includes('audit-log') && file.endsWith('.log'))
+    .map((file) => {
+      const filePath = path.join(logWatchPath, file);
+      const stats = fs.statSync(filePath);
+      return { file, mtime: stats.mtime };
+    });
+
+  if (files.length === 0) return null;
+
+  files.sort((a, b) => b.mtime - a.mtime); // Sort by most recent
+  return files[0].file; // Return the most recent audit-log file
+}
+
+/**
+ * Set up new watches for required files
  */
 function setNewWatches() {
-  fs.readdirSync(logWatchPath).forEach(file => {
-    if (file.includes(".log")) {
-      filesToWatch.push(file);
-    }
-  });
+  const latestAuditLog = getLatestAuditLog();
+  const specificQueryLog = 'queries.log.00000086';
 
-  filesToWatch.forEach(file => {
+  const filesToWatch = [latestAuditLog, specificQueryLog].filter(Boolean); // Remove null if any
+
+  filesToWatch.forEach((file) => {
     const watchFile = path.join(logWatchPath, file);
-    let stats       = fs.statSync(watchFile);
-    let seconds     = (new Date().getTime() - stats.mtime) / 1000;
-
-    if (seconds > 86400 * 3) {
-      // console.log("File hasn't been modified in the past day, skipping [%s]", watchFile)
-      return;
-    }
 
     console.log("Setting watch [%s]", watchFile);
 
     let tail = new alwaysTail(watchFile, '\n');
-    tail.on('line', function (data) {
-      const line = JSON.parse(data);
-      if (line.query) {
-
-        if (line.username.includes("peq_editor")) {
-          return;
+    tail.on('line', (data) => {
+      try {
+        const line = JSON.parse(data);
+        if (line.query) {
+          if (
+            line.username.includes('peq_editor') ||
+            line.username.includes('monocle')
+          ) {
+            return;
+          }
+          sendQueryLogRelay(line);
+        } else if (
+          line.event === 'MySQL_Client_Connect_OK' &&
+          !['192.99.119', '68.112.138.157'].some((addr) => line.client_addr.includes(addr)) &&
+          !['ro', 'peq', 'server', 'peq_editor'].includes(line.username)
+        ) {
+          sendAuditLogRelay(line);
         }
-
-        if (line.username.includes("monocle")) {
-          return;
-        }
-
-        sendQueryLogRelay(line)
-      } else if (line.event &&
-        line.event === "MySQL_Client_Connect_OK") {
-
-        if (line.client_addr.includes("192.99.119")) {
-          return;
-        }
-
-        if (line.client_addr.includes("68.112.138.157")) {
-          return;
-        }
-
-        if (line.username === "ro") {
-          return;
-        }
-
-        if (line.username.includes("peq")) {
-          return;
-        }
-
-        if (line.username.includes("server")) {
-          return;
-        }
-
-        if (line.username.includes("peq_editor")) {
-          return;
-        }
-
-        sendAuditLogRelay(line)
+      } catch (error) {
+        console.log('Error parsing log line:', error);
       }
     });
 
-    tail.on('error', function (data) {
-      console.log('error:', data);
-    });
-
+    tail.on('error', (error) => console.log('Error:', error));
     tail.watch();
-
     watchInstances.push(tail);
   });
 }
 
-setInterval(function () {
-  processLoop();
-}, 3600 * 1000);
-
+/**
+ * Process loop to reset watches periodically
+ */
+setInterval(() => processLoop(), 3600 * 1000);
 
 function processLoop() {
   clearWatches();
@@ -110,7 +92,6 @@ function processLoop() {
 }
 
 processLoop();
-
 console.log("Starting main loop");
 
 function sendQueryLogRelay(line) {
@@ -119,14 +100,10 @@ function sendQueryLogRelay(line) {
   message += util.format('**Rows Affected / Sent** [%s / %s] ', line.rows_affected, line.rows_sent);
   message += util.format('**Query Time (Seconds)** [%s] ', parseFloat(line.duration_us / 1000000));
   message += util.format('**Client** [%s] ', line.client);
-  // message += util.format('**Time** [%s] ', line.starttime);
 
   axios.post(process.env.DISCORD_WEBHOOK, {
-      content: message + '\n```sql\n' + line.query + '\n```'
-    }
-  ).catch(function (error) {
-    console.log(error);
-  });
+    content: message + '\n```sql\n' + line.query + '\n```',
+  }).catch((error) => console.log(error));
 }
 
 function sendAuditLogRelay(line) {
@@ -135,15 +112,7 @@ function sendAuditLogRelay(line) {
   message += util.format('**Event** [%s] ', line.event);
   message += util.format('**Client** [%s] ', line.client_addr);
 
-  axios.post(process.env.DISCORD_WEBHOOK, {
-      content: message
-    }
-  ).catch(function (error) {
-    console.log(error);
-  });
+  axios.post(process.env.DISCORD_WEBHOOK, { content: message }).catch((error) => console.log(error));
 }
 
-
 const web = require('./app/web');
-
-

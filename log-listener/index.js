@@ -41,7 +41,7 @@ function getLatestFile(pattern) {
  * Set up new watches for the latest audit and query logs
  */
 function setNewWatches() {
-  const latestAuditLog = getLatestFile(/^audit-log.*\.log$/);
+  const latestAuditLog = getLatestFile(/^audit-log\.log\.\d+$/);
   const latestQueryLog = getLatestFile(/^queries\.log\.\d+$/);
 
   const filesToWatch = [latestAuditLog, latestQueryLog].filter(Boolean); // Remove null if any

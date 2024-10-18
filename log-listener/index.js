@@ -63,7 +63,7 @@ function setNewWatches() {
         } else if (
           line.event === 'MySQL_Client_Connect_OK' &&
           !['192.99.119', '68.112.138.157'].some((addr) => line.client_addr.includes(addr)) &&
-          !['ro', 'peq', 'server', 'peq_editor'].includes(line.username)
+          !['ro', 'peq', 'peq_server_tgc', 'server', 'peq_editor'].includes(line.username)
         ) {
           sendAuditLogRelay(line);
         }
